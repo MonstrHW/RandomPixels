@@ -1,6 +1,7 @@
 import { useNonRepeatCell } from "./non_repeat_cell.js";
 import { useRate } from "./rate.js";
 import { useInfoBar } from "./info_bar.js";
+import { useIdle } from "./idle.js";
 
 const canvas = document.getElementById("field");
 canvas.width = window.innerWidth;
@@ -63,6 +64,34 @@ function getOptions() {
 }
 
 const options = getOptions();
+
+const infoBar = document.getElementById("info-bar");
+const infoBarDisplay = infoBar.style.display;
+const bodyCursor = document.body.style.cursor;
+let infoBarInFocus = false;
+
+infoBar.addEventListener("mouseover", () => {
+    infoBarInFocus = true;
+});
+
+infoBar.addEventListener("mouseleave", () => {
+    infoBarInFocus = false;
+});
+
+function onIdle() {
+    if (!infoBarInFocus) {
+        infoBar.style.display = "none";
+    }
+
+    document.body.style.cursor = "none";
+}
+
+function onActive() {
+    infoBar.style.display = infoBarDisplay;
+    document.body.style.cursor = bodyCursor;
+}
+
+useIdle(onIdle, onActive, 3000);
 
 const {
     get: getNonRepeatCell,
