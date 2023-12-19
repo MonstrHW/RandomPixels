@@ -15,7 +15,8 @@ function getOptions() {
         fading: true,
     };
 
-    const desc = "cell width, cell height, fade option\n(0: no fade, 1: fade)";
+    const desc =
+        "pixel width, pixel height, fade option\n(0: no fade, 1: fade)";
     const enter = prompt(desc, "2, 2, 1");
     if (enter === null || enter === "") {
         return options;
