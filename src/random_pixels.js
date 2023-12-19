@@ -2,6 +2,7 @@ import { useNonRepeatCell } from "./non_repeat_cell.js";
 import { useRate } from "./rate.js";
 import { useInfoBar } from "./info_bar.js";
 import { useIdle } from "./idle.js";
+import { useWakeLock } from "./wake_lock.js";
 
 const canvas = document.getElementById("field");
 canvas.width = window.innerWidth;
@@ -93,6 +94,8 @@ function onActive() {
 
 useIdle(onIdle, onActive, 3000);
 
+const wakeLock = await useWakeLock();
+
 const {
     get: getNonRepeatCell,
     usedCount: getUsedCellCount,
@@ -162,4 +165,6 @@ function stop() {
     stopInfoBar(4, () => {
         stopRate();
     });
+
+    wakeLock?.release();
 }
