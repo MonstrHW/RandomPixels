@@ -25,7 +25,7 @@ export function useInfoBar(selector, interval, data) {
 
     const elements = prepareInfoElements(infoBar, data.length);
 
-    const intervalId = setInterval(() => {
+    const loop = () => {
         for (let i = 0; i < data.length; i++) {
             elements[i].innerHTML = data[i]();
         }
@@ -39,7 +39,11 @@ export function useInfoBar(selector, interval, data) {
                 onStopCallback();
             }
         }
-    }, interval);
+    };
+
+    loop();
+
+    const intervalId = setInterval(loop, interval);
 
     return {
         stop: (lastTicks, onStop) => {
