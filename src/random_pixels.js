@@ -3,12 +3,7 @@ import { useRate } from "./rate.js";
 import { useInfoBar } from "./info_bar.js";
 import { useIdle } from "./idle.js";
 import { useWakeLock } from "./wake_lock.js";
-
-const canvas = document.getElementById("field");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-const ctx = canvas.getContext("2d");
+import { useFullScreenToggle } from "./fullscreen_toggle.js";
 
 function getOptions() {
     let options = {
@@ -65,6 +60,14 @@ function getOptions() {
 }
 
 const options = getOptions();
+
+const canvas = document.getElementById("field");
+canvas.width = window.screen.width;
+canvas.height = window.screen.height;
+
+useFullScreenToggle();
+
+const ctx = canvas.getContext("2d");
 
 const infoBar = document.getElementById("info-bar");
 const infoBarDisplay = infoBar.style.display;
