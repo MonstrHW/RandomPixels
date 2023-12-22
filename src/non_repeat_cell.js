@@ -10,7 +10,7 @@ export function useNonRepeatCell(w, h, cellWidth, cellHeight) {
     }
 
     return {
-        get: function () {
+        get: () => {
             if (availSize === 0) {
                 return null;
             }
@@ -30,15 +30,15 @@ export function useNonRepeatCell(w, h, cellWidth, cellHeight) {
             };
         },
 
-        usedCount: function () {
+        usedCount: () => {
             return fieldSize - availSize;
         },
 
-        remainCount: function () {
+        remainCount: () => {
             return availSize;
         },
 
-        totalCount: function () {
+        totalCount: () => {
             return fieldSize;
         },
     };
