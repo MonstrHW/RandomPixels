@@ -8,7 +8,7 @@ import useIdle from '@/composables/idle'
 import useWakeLock from '@/composables/wake_lock'
 import { ref, watch } from 'vue'
 import Control from '@/enums/control'
-import useStorageSettings from '@/composables/storageSettings'
+import useStorageSettings from '@/composables/storage_settings'
 import { getRemainTime } from '@/helpers'
 
 const settings = useStorageSettings()
