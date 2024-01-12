@@ -6,7 +6,7 @@ import useNonRepeatCell from '@/composables/non_repeat_cell'
 import useRate from '@/composables/rate'
 import useIdle from '@/composables/idle'
 import useWakeLock from '@/composables/wake_lock'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import Control from '@/enums/control'
 import useStorageSettings from '@/composables/storage_settings'
 import { getRemainTime } from '@/helpers'
@@ -36,7 +36,8 @@ let infoBarData = [
     () => getRemainTime(remainCellCount.value, rate.value)
 ]
 
-let showSettings = ref(true)
+const showSettings = ref(true)
+const showInfoBar = computed(() => settings.infoBar && showSettings.value)
 
 function onIdle() {
     if (!settings.isOpened) {
@@ -109,7 +110,7 @@ function onControl(control: Control) {
 
 <template>
     <header>
-        <InfoBar v-if="settings.infoBar" :data="infoBarData" />
+        <InfoBar v-if="showInfoBar" :data="infoBarData" />
     </header>
     <AppSettings v-if="showSettings" ref="appSettings" v-model="settings" @control="onControl" />
     <PixelField
