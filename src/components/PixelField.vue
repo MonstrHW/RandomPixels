@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
 import type Settings from '@/types/settings'
+import useTimerList from '@/composables/timer_list'
 
 const field = ref<HTMLCanvasElement | null>(null)
 let ctx: CanvasRenderingContext2D | null = null
@@ -23,21 +24,35 @@ onMounted(() => {
     intervalId = setInterval(loop, props.settings.interval)
 })
 
+const {
+    add: addFading,
+    pause: pauseFading,
+    resume: resumeFading,
+    clear: clearFading
+} = useTimerList()
+
 const restart = () => {
     ctx?.clearRect(0, 0, field.value!.width, field.value!.height)
+    clearFading()
 }
 
 const start = () => {
     if (intervalId === null) {
         intervalId = setInterval(loop, props.settings.interval)
+        resumeFading()
     }
 }
 
-const stop = () => {
+function stopLoop() {
     if (intervalId !== null) {
         clearInterval(intervalId)
         intervalId = null
     }
+}
+
+const stop = () => {
+    stopLoop()
+    pauseFading()
 }
 
 defineExpose({ restart, start, stop })
@@ -52,6 +67,15 @@ watch(
     }
 )
 
+watch(
+    () => props.settings.fading,
+    () => {
+        if (!props.settings.fading) {
+            clearFading()
+        }
+    }
+)
+
 function setPixel(
     ctx: CanvasRenderingContext2D,
     pixel: { x: number; y: number; width: number; height: number; fading: boolean }
@@ -61,7 +85,7 @@ function setPixel(
     ctx.fillRect(pixel.x, pixel.y, pixel.width, pixel.height)
 
     if (pixel.fading) {
-        setTimeout(() => {
+        addFading(() => {
             ctx.clearRect(pixel.x, pixel.y, pixel.width, pixel.height)
             ctx.fillStyle = `hsl(${degree}, 100%, 15%)`
             ctx.fillRect(pixel.x, pixel.y, pixel.width, pixel.height)
@@ -87,7 +111,7 @@ function loop() {
 }
 
 function end() {
-    stop()
+    stopLoop()
     emit('end')
 }
 </script>
