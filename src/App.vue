@@ -13,28 +13,41 @@ import { getRemainTime } from '@/helpers'
 
 const settings = useStorageSettings()
 
-let {
-    get: getNonRepeatCell,
-    usedCount: usedCellCount,
-    remainCount: remainCellCount,
-    totalCount: totalCellCount
-} = useNonRepeatCell(
-    window.screen.width,
-    window.screen.height,
-    settings.pixelWidth,
-    settings.pixelHeight
-)
+let cell: ReturnType<typeof useNonRepeatCell>
+let rate: ReturnType<typeof useRate>
+let infoBarData: (() => string)[]
+let refGetNonRepeatCell = ref<typeof cell.get>()
 
-const refGetNonRepeatCell = ref(getNonRepeatCell)
+const pixelField = ref<InstanceType<typeof PixelField>>()
+const appSettings = ref<InstanceType<typeof AppSettings>>()
 
-let { get: rate, stop: stopRate } = useRate(usedCellCount, 1000)
+function start() {
+    pixelField.value?.restart()
 
-let infoBarData = [
-    () => Math.floor((usedCellCount.value * 100) / totalCellCount) + '%',
-    () => `${usedCellCount.value}/${totalCellCount}`,
-    () => rate.value + 'p/s',
-    () => getRemainTime(remainCellCount.value, rate.value)
-]
+    cell = useNonRepeatCell(
+        window.screen.width,
+        window.screen.height,
+        Math.max(1, settings.pixelWidth),
+        Math.max(1, settings.pixelHeight)
+    )
+
+    refGetNonRepeatCell.value = cell.get
+
+    rate?.stop()
+    rate = useRate(cell.usedCount, 1000)
+
+    infoBarData = [
+        () => Math.floor((cell.usedCount.value * 100) / cell.totalCount) + '%',
+        () => `${cell.usedCount.value}/${cell.totalCount}`,
+        () => rate.get.value + 'p/s',
+        () => getRemainTime(cell.remainCount.value, rate.get.value)
+    ]
+}
+
+start()
+
+watch(() => settings.pixelWidth, start)
+watch(() => settings.pixelHeight, start)
 
 const showSettings = ref(true)
 const showInfoBar = computed(() => settings.infoBar && showSettings.value)
@@ -56,40 +69,6 @@ useIdle(onIdle, onActive, 3000)
 // const wakeLock = await useWakeLock()
 useWakeLock()
 
-const pixelField = ref<InstanceType<typeof PixelField>>()
-const appSettings = ref<InstanceType<typeof AppSettings>>()
-
-watch(() => settings.pixelWidth, restart)
-watch(() => settings.pixelHeight, restart)
-
-function restart() {
-    pixelField.value?.restart()
-
-    const nonRepeatCell = useNonRepeatCell(
-        window.screen.width,
-        window.screen.height,
-        Math.max(1, settings.pixelWidth),
-        Math.max(1, settings.pixelHeight)
-    )
-
-    refGetNonRepeatCell.value = nonRepeatCell.get
-    usedCellCount = nonRepeatCell.usedCount
-    remainCellCount = nonRepeatCell.remainCount
-    totalCellCount = nonRepeatCell.totalCount
-
-    stopRate()
-    const newRate = useRate(usedCellCount, 1000)
-    rate = newRate.get
-    stopRate = newRate.stop
-
-    infoBarData = [
-        () => Math.floor((usedCellCount.value * 100) / totalCellCount) + '%',
-        () => `${usedCellCount.value}/${totalCellCount}`,
-        () => rate.value + 'p/s',
-        () => getRemainTime(remainCellCount.value, rate.value)
-    ]
-}
-
 function onControl(control: Control) {
     switch (control) {
         case Control.START: {
@@ -101,7 +80,7 @@ function onControl(control: Control) {
             break
         }
         case Control.RESTART: {
-            restart()
+            start()
             break
         }
     }
@@ -115,7 +94,7 @@ function onControl(control: Control) {
     <AppSettings v-if="showSettings" ref="appSettings" v-model="settings" @control="onControl" />
     <PixelField
         ref="pixelField"
-        :get-non-repeat-cell="refGetNonRepeatCell"
+        :get-non-repeat-cell="refGetNonRepeatCell!"
         :settings="settings"
         @end="appSettings?.resetStartStopButton()"
     />
